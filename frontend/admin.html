@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BookMe Admin</title>
+</head>
+<body>
+
+  <h1>BookMe Admin - Add Book</h1>
+
+  <input id="title" placeholder="Book title"><br><br>
+  <input id="author" placeholder="Author"><br><br>
+  <textarea id="description" placeholder="Description"></textarea><br><br>
+  <input id="price" type="number" placeholder="Price"><br><br>
+  <input id="stock" type="number" placeholder="Stock"><br><br>
+  <input type="file" id="bookImage"><br><br>
+
+  <button onclick="addBook()">Add Book</button>
+
+  <p id="message"></p>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem("user"));
+
+if (!user) {
+    alert("Please login first");
+    window.location.href = "login.html";
+}
+
+if (user.role !== "admin") {
+    alert("Access Denied");
+    window.location.href = "home.html";
+}
+    function addBook() {
+      const formData = new FormData();
+
+      formData.append("title", document.getElementById("title").value);
+      formData.append("author", document.getElementById("author").value);
+      formData.append("description", document.getElementById("description").value);
+      formData.append("price", document.getElementById("price").value);
+      formData.append("stock", document.getElementById("stock").value);
+      formData.append("category_id", "");
+
+      const imageFile = document.getElementById("bookImage").files[0];
+
+      if (!imageFile) {
+        document.getElementById("message").innerText = "Please select an image";
+        return;
+      }
+
+      formData.append("bookImage", imageFile);
+
+      fetch("http://localhost:5000/api/books/add-book", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("message").innerText = "Book added successfully!";
+        console.log(data);
+      })
+      .catch(err => {
+        document.getElementById("message").innerText = "Error adding book";
+        console.log(err);
+      });
+    }
+  </script>
+
+</body>
+</html>

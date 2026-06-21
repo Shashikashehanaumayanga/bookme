@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Cart</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<h1>🛒 My Cart</h1>
+
+<div id="cartContainer"></div>
+
+<h2 id="totalPrice"></h2>
+<a href="checkout.html" class="btn">Proceed to Checkout</a>
+
+<script>
+function loadCart() {
+    const user = JSON.parse(localStorage.getItem("user"));
+
+if (!user) {
+    alert("Please login first");
+    window.location.href = "login.html";
+    return;
+}
+
+fetch(`http://localhost:5000/api/books/cart/${user.id}`)
+    .then(res => res.json())
+    .then(data => {
+        const container = document.getElementById("cartContainer");
+        const totalBox = document.getElementById("totalPrice");
+
+        container.innerHTML = "";
+
+        let total = 0;
+
+        data.forEach(item => {
+            total += Number(item.price) * Number(item.quantity);
+
+            container.innerHTML += `
+                <div class="featured-card">
+                    <img src="http://localhost:5000${item.image_url}" alt="${item.title}">
+                    <h3>${item.title}</h3>
+                    <div class="qty-box">
+
+                <button onclick="changeQty(${item.id}, ${item.quantity - 1})">
+                    -
+                </button>
+
+                <span>${item.quantity}</span>
+
+                    <button onclick="changeQty(${item.id}, ${item.quantity + 1})">
+                        +
+                </button>
+
+                </div>  
+                    <h4>Rs. ${item.price}</h4>
+
+                    <button class="delete-btn" onclick="removeCartItem(${item.id})">
+                        Remove
+                    </button>
+                </div>
+            `;
+        });
+
+        totalBox.innerText = "Total: Rs. " + total.toFixed(2);
+    })
+    .catch(err => console.log(err));
+}
+
+function removeCartItem(id) {
+    fetch(`http://localhost:5000/api/books/cart/remove/${id}`, {
+        method: "DELETE"
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Item removed");
+        loadCart();
+    })
+    .catch(err => console.log(err));
+}
+
+loadCart();
+function changeQty(id, quantity) {
+
+    if(quantity < 1){
+        return;
+    }
+
+    fetch(`http://localhost:5000/api/books/cart/update/${id}`,{
+        method:"PUT",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            quantity
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        loadCart();
+    })
+    .catch(err => console.log(err));
+}
+</script>
+
+</body>
+</html>

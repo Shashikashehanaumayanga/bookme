@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<h1>Login</h1>
+
+<input id="email" placeholder="Email"><br><br>
+
+<input
+    id="password"
+    type="password"
+    placeholder="Password"
+><br><br>
+
+<button onclick="loginUser()">
+    Login
+</button>
+
+<p id="message"></p>
+
+<script>
+
+function loginUser(){
+
+    fetch("http://localhost:5000/api/users/login",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            email:
+            document.getElementById("email").value,
+
+            password:
+            document.getElementById("password").value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if(data.user){
+
+            localStorage.setItem(
+                "user",
+                JSON.stringify(data.user)
+            );
+
+            document.getElementById("message").innerText =
+            "Login Successful!";
+
+            if(data.user.role === "admin"){
+            window.location.href = "admin-main-dashboard.html";
+            }else{
+            window.location.href = "home.html";
+        }
+
+        }else{
+
+            document.getElementById("message").innerText =
+            data.error;
+
+        }
+
+    })
+    .catch(err => console.log(err));
+}
+
+</script>
+
+</body>
+</html>

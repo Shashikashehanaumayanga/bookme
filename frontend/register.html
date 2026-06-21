@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+</head>
+<body>
+
+<h1>Create Account</h1>
+
+<input id="full_name" placeholder="Full Name"><br><br>
+
+<input id="email" placeholder="Email"><br><br>
+
+<input id="password" type="password" placeholder="Password"><br><br>
+
+<button onclick="registerUser()">
+Register
+</button>
+
+<p id="message"></p>
+
+<script>
+
+function registerUser(){
+
+    fetch("http://localhost:5000/api/users/register",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            full_name:
+            document.getElementById("full_name").value,
+
+            email:
+            document.getElementById("email").value,
+
+            password:
+            document.getElementById("password").value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        document.getElementById("message").innerText =
+        "Registration Successful!";
+
+        console.log(data);
+
+    })
+    .catch(err => console.log(err));
+}
+
+</script>
+
+</body>
+</html>

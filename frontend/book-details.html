@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book Details</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <h2>📚 BookMe</h2>
+    <div>
+        <a href="home.html">Home</a>
+        <a href="index.html">Shop</a>
+        <a href="cart.html">Cart</a>
+        <a href="orders.html">Orders</a>
+    </div>
+</nav>
+
+<div id="bookDetails"></div>
+<div id="averageRating" style="text-align:center;"></div>
+
+<h2 style="text-align:center;">⭐ Add Review</h2>
+
+<div class="review-form">
+    <select id="rating">
+        <option value="5">⭐⭐⭐⭐⭐</option>
+        <option value="4">⭐⭐⭐⭐</option>
+        <option value="3">⭐⭐⭐</option>
+        <option value="2">⭐⭐</option>
+        <option value="1">⭐</option>
+    </select>
+
+    <textarea id="reviewText" placeholder="Write your review"></textarea>
+
+    <button onclick="addReview()">Submit Review</button>    
+</div>
+
+<h2 style="text-align:center;">Customer Reviews</h2>
+
+<div id="reviewsContainer"></div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const bookId = params.get("id");
+
+const user = JSON.parse(localStorage.getItem("user"));
+
+function loadBookDetails() {
+    fetch(`http://localhost:5000/api/books/book/${bookId}`)
+    .then(res => res.json())
+    .then(book => {
+        document.getElementById("bookDetails").innerHTML = `
+            <div class="book-detail-box">
+                <img src="http://localhost:5000${book.image_url}" alt="${book.title}">
+
+                <div>
+                    <h1>${book.title}</h1>
+                    <h3>Author: ${book.author}</h3>
+                    <p>${book.description}</p>
+                    <h2>Rs. ${book.price}</h2>
+                    <p>Stock: ${book.stock}</p>
+
+                    <button class="cart-btn" onclick="addToCart(${book.id})">
+                        Add To Cart
+                    </button>
+                    <button class="cart-btn" onclick="addToWishlist(${book.id})">
+                    ❤️ Add To Wishlist
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function loadReviews() {
+    fetch(`http://localhost:5000/api/books/reviews/${bookId}`)
+    .then(res => res.json())
+    .then(reviews => {
+        const container = document.getElementById("reviewsContainer");
+        container.innerHTML = "";
+
+        if (reviews.length === 0) {
+            container.innerHTML = "<p style='text-align:center;'>No reviews yet.</p>";
+            return;
+        }
+
+        reviews.forEach(review => {
+            container.innerHTML += `
+                <div class="review-card">
+                    <h3>${"⭐".repeat(review.rating)}</h3>
+                    <p>${review.review_text}</p>
+                    <small>By ${review.full_name}</small>
+                </div>
+            `;
+        });
+    });
+}
+
+function addReview() {
+    if (!user) {
+        alert("Please login first");
+        window.location.href = "login.html";
+        return;
+    }
+
+    fetch("http://localhost:5000/api/books/reviews/add", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            user_id: user.id,
+            book_id: bookId,
+            rating: document.getElementById("rating").value,
+            review_text: document.getElementById("reviewText").value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Review added");
+        document.getElementById("reviewText").value = "";
+        loadReviews();
+    });
+}
+
+function addToCart(bookId) {
+    if (!user) {
+        alert("Please login first");
+        window.location.href = "login.html";
+        return;
+    }
+
+    fetch("http://localhost:5000/api/books/add-to-cart", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            user_id: user.id,
+            book_id: bookId,
+            quantity: 1
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Book added to cart");
+    });
+    function loadAverageRating() {
+    fetch(`http://localhost:5000/api/books/reviews/average/${bookId}`)
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("averageRating").innerHTML = `
+            <h2>⭐ ${data.average_rating || 0} / 5</h2>
+            <p>Based on ${data.total_reviews} reviews</p>
+        `;
+    })
+    .catch(err => console.log(err));
+    function addToWishlist(bookId) {
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!user) {
+        alert("Please login first");
+        window.location.href = "login.html";
+        return;
+    }
+
+    fetch("http://localhost:5000/api/books/wishlist/add", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            user_id: user.id,
+            book_id: bookId
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+    })
+    .catch(err => console.log(err));
+}
+}
+}
+
+loadBookDetails();
+loadReviews();
+loadAverageRating();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Orders</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<h1>📦 Admin Order Management</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Order ID</th>
+      <th>Customer</th>
+      <th>Email</th>
+      <th>Total</th>
+      <th>Status</th>
+      <th>Change Status</th>
+    </tr>
+  </thead>
+
+  <tbody id="ordersTable"></tbody>
+</table>
+
+<script>
+    const user = JSON.parse(localStorage.getItem("user"));
+
+if (!user) {
+    alert("Please login first");
+    window.location.href = "login.html";
+}
+
+if (user.role !== "admin") {
+    alert("Access Denied");
+    window.location.href = "home.html";
+}
+function loadOrders() {
+  fetch("http://localhost:5000/api/books/admin/orders")
+  .then(res => res.json())
+  .then(orders => {
+    const table = document.getElementById("ordersTable");
+    table.innerHTML = "";
+
+    orders.forEach(order => {
+      table.innerHTML += `
+        <tr>
+          <td>#${order.id}</td>
+          <td>${order.full_name}</td>
+          <td>${order.email}</td>
+          <td>Rs. ${order.total_amount}</td>
+          <td>${order.status}</td>
+          <td>
+            <select onchange="updateStatus(${order.id}, this.value)">
+              <option value="Pending" ${order.status === "Pending" ? "selected" : ""}>Pending</option>
+              <option value="Processing" ${order.status === "Processing" ? "selected" : ""}>Processing</option>
+              <option value="Shipped" ${order.status === "Shipped" ? "selected" : ""}>Shipped</option>
+              <option value="Delivered" ${order.status === "Delivered" ? "selected" : ""}>Delivered</option>
+            </select>
+          </td>
+        </tr>
+      `;
+    });
+  })
+  .catch(err => console.log(err));
+}
+
+function updateStatus(orderId, status) {
+  fetch(`http://localhost:5000/api/books/admin/orders/${orderId}/status`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ status })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert("Order status updated");
+    loadOrders();
+  })
+  .catch(err => console.log(err));
+}
+
+loadOrders();
+</script>
+
+</body>
+</html>

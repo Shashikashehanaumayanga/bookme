@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BookMe Admin Main Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<h1>📊 BookMe Admin Dashboard</h1>
+
+<div class="admin-stats">
+  <div class="stat-card">
+    <h2 id="usersCount">0</h2>
+    <p>Total Users</p>
+  </div>
+
+  <div class="stat-card">
+    <h2 id="booksCount">0</h2>
+    <p>Total Books</p>
+  </div>
+
+  <div class="stat-card">
+    <h2 id="cartCount">0</h2>
+    <p>Cart Items</p>
+  </div>
+
+  <div class="stat-card">
+    <h2 id="ordersCount">0</h2>
+    <p>Total Orders</p>
+  </div>
+  <div class="stat-card">
+  <h2 id="reviewsCount">0</h2>
+  <p>Total Reviews</p>
+  </div>
+  <div class="stat-card">
+  <h2 id="wishlistCount">0</h2>
+  <p>Wishlist Items</p>
+    </div>
+
+    <div class="stat-card">
+  <h2 id="revenueCount">0</h2>
+  <p>Total Revenue</p>
+    </div>
+    <h2 style="text-align:center;">🏆 Top Selling Books</h2>
+    <div id="topSellingBooks" class="top-selling"></div>
+</div>
+
+
+
+<div class="admin-links">
+  <a href="admin-dashboard.html">Manage Books</a>
+  <a href="admin.html">Add Book</a>
+  <a href="admin-orders.html">Manage Orders</a>
+  <a href="admin-users.html">Manage Users</a>
+</div>
+
+<script>
+    const user = JSON.parse(localStorage.getItem("user"));
+
+if (!user) {
+    alert("Please login first");
+    window.location.href = "login.html";
+}
+
+if (user.role !== "admin") {
+    alert("Access Denied");
+    window.location.href = "home.html";
+}
+fetch("http://localhost:5000/api/books/admin/stats")
+.then(res => res.json())
+.then(data => {
+
+  document.getElementById("usersCount").innerText =
+  data.total_users;
+
+  document.getElementById("booksCount").innerText =
+  data.total_books;
+
+  document.getElementById("cartCount").innerText =
+  data.total_cart_items;
+
+  document.getElementById("ordersCount").innerText =
+  data.total_orders;
+
+  document.getElementById("reviewsCount").innerText =
+  data.total_reviews;
+
+  document.getElementById("wishlistCount").innerText =
+  data.total_wishlist;
+
+  document.getElementById("revenueCount").innerText =
+  "Rs. " + data.total_revenue;
+
+})
+.catch(err => console.log(err));
+fetch("http://localhost:5000/api/books/admin/top-selling-books")
+.then(res => res.json())
+.then(books => {
+  const box = document.getElementById("topSellingBooks");
+
+  books.forEach(book => {
+    box.innerHTML += `
+      <div class="featured-card">
+        <img src="http://localhost:5000${book.image_url}">
+        <h3>${book.title}</h3>
+        <p>${book.author}</p>
+        <h4>${book.total_sold} sold</h4>
+      </div>
+    `;
+  });
+});
+</script>
+
+</body>
+</html>

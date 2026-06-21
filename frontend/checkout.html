@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Checkout</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<h1>Checkout</h1>
+
+<div id="checkoutItems"></div>
+
+<h2 id="checkoutTotal"></h2>
+
+<button onclick="placeOrder()" class="cart-btn">
+    Place Order
+</button>
+
+<p id="message"></p>
+
+<script>
+const user = JSON.parse(localStorage.getItem("user"));
+
+if (!user) {
+    alert("Please login first");
+    window.location.href = "login.html";
+}
+
+function loadCheckout() {
+    fetch(`http://localhost:5000/api/books/cart/${user.id}`)
+    .then(res => res.json())
+    .then(data => {
+        const box = document.getElementById("checkoutItems");
+        const totalBox = document.getElementById("checkoutTotal");
+
+        box.innerHTML = "";
+
+        let total = 0;
+
+        data.forEach(item => {
+            total += Number(item.price) * Number(item.quantity);
+
+            box.innerHTML += `
+                <div class="featured-card">
+                    <h3>${item.title}</h3>
+                    <p>Quantity: ${item.quantity}</p>
+                    <h4>Rs. ${item.price}</h4>
+                </div>
+            `;
+        });
+
+        totalBox.innerText = "Total: Rs. " + total.toFixed(2);
+    });
+}
+
+function placeOrder() {
+    fetch("http://localhost:5000/api/books/place-order", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            user_id: user.id
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("message").innerText =
+        data.message || data.error;
+
+        if (data.message) {
+            const adminPhone = "94782376311"; // change this to your friend's WhatsApp number
+
+            const message =
+                `New BookMe Order%0A` +
+                `Customer: ${user.full_name}%0A` +
+                `Email: ${user.email}%0A` +
+                `Order ID: ${data.order.id}%0A` +
+                `Total: Rs. ${data.order.total_amount}%0A` +
+                `Status: ${data.order.status}`;
+
+            window.open(
+                `https://wa.me/${adminPhone}?text=${message}`,
+                "_blank"
+            );
+
+            setTimeout(() => {
+                window.location.href = "orders.html";
+            }, 1500);
+        }
+    })
+    .catch(err => console.log(err));
+}
+
+loadCheckout();
+</script>
+
+</body>
+</html>

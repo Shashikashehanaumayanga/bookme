@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Wishlist</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<h1>❤️ My Wishlist</h1>
+
+<div id="wishlistContainer"></div>
+
+<script>
+const user = JSON.parse(localStorage.getItem("user"));
+
+if (!user) {
+  alert("Please login first");
+  window.location.href = "login.html";
+}
+
+function loadWishlist() {
+  fetch(`http://localhost:5000/api/books/wishlist/${user.id}`)
+  .then(res => res.json())
+  .then(items => {
+    const container = document.getElementById("wishlistContainer");
+    container.innerHTML = "";
+
+    items.forEach(item => {
+      container.innerHTML += `
+        <div class="featured-card">
+          <img src="http://localhost:5000${item.image_url}">
+          <h3>${item.title}</h3>
+          <p>${item.author}</p>
+          <h4>Rs. ${item.price}</h4>
+
+          <button class="delete-btn" onclick="removeWishlist(${item.id})">
+            Remove
+          </button>
+        </div>
+      `;
+    });
+  });
+}
+
+function removeWishlist(id) {
+  fetch(`http://localhost:5000/api/books/wishlist/remove/${id}`, {
+    method: "DELETE"
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message);
+    loadWishlist();
+  });
+}
+
+loadWishlist();
+</script>
+
+</body>
+</html>

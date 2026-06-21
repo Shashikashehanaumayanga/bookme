@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Users</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<h1>👥 User Management</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Full Name</th>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="usersTable"></tbody>
+</table>
+
+<script>
+const user = JSON.parse(localStorage.getItem("user"));
+
+if (!user || user.role !== "admin") {
+  alert("Access Denied");
+  window.location.href = "home.html";
+}
+
+fetch("http://localhost:5000/api/users/all-users")
+.then(res => res.json())
+.then(users => {
+  const table = document.getElementById("usersTable");
+
+  users.forEach(u => {
+    table.innerHTML += `
+      <tr>
+        <td>${u.id}</td>
+        <td>${u.full_name}</td>
+        <td>${u.email}</td>
+        <td>
+        <select onchange="updateRole(${u.id}, this.value)">
+        <option value="customer" ${u.role === "customer" ? "selected" : ""}>customer</option>
+        <option value="admin" ${u.role === "admin" ? "selected" : ""}>admin</option>
+        </select>
+        </td>
+        <td>
+        <button class="delete-btn" onclick="deleteUser(${u.id})">
+            Delete
+        </button>
+        </td>
+      </tr>
+    `;
+  });
+})
+.catch(err => console.log(err));
+function updateRole(id, role) {
+  fetch(`http://localhost:5000/api/users/update-role/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ role })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert("User role updated");
+  })
+  .catch(err => console.log(err));
+}
+function deleteUser(id) {
+  if (!confirm("Are you sure you want to delete this user?")) {
+    return;
+  }
+
+  fetch(`http://localhost:5000/api/users/delete-user/${id}`, {
+    method: "DELETE"
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message || data.error);
+    location.reload();
+  })
+  .catch(err => console.log(err));
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edit Book</title>
+</head>
+<body>
+
+  <h1>Edit Book</h1>
+
+  <input id="title" placeholder="Book title"><br><br>
+  <input id="author" placeholder="Author"><br><br>
+  <textarea id="description" placeholder="Description"></textarea><br><br>
+  <input id="price" type="number" placeholder="Price"><br><br>
+  <input id="stock" type="number" placeholder="Stock"><br><br>
+
+  <button onclick="updateBook()">Update Book</button>
+
+  <p id="message"></p>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const bookId = params.get("id");
+
+    fetch(`http://localhost:5000/api/books/book/${bookId}`)
+      .then(res => res.json())
+      .then(book => {
+        document.getElementById("title").value = book.title;
+        document.getElementById("author").value = book.author;
+        document.getElementById("description").value = book.description;
+        document.getElementById("price").value = book.price;
+        document.getElementById("stock").value = book.stock;
+      });
+
+    function updateBook() {
+      const book = {
+        title: document.getElementById("title").value,
+        author: document.getElementById("author").value,
+        description: document.getElementById("description").value,
+        price: document.getElementById("price").value,
+        stock: document.getElementById("stock").value
+      };
+
+      fetch(`http://localhost:5000/api/books/update-book/${bookId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(book)
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("message").innerText = "Book updated successfully!";
+      })
+      .catch(err => {
+        document.getElementById("message").innerText = "Error updating book";
+        console.log(err);
+      });
+    }
+  </script>
+
+</body>
+</html>

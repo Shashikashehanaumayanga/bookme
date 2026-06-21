@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BookMe Home</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <h2>📚 BookMe</h2>
+
+    <div>
+        <a href="home.html">Home</a>
+        <a href="index.html">Shop</a>
+        <a href="cart.html">Cart</a>
+        <a href="register.html">Register</a>
+        <a href="login.html">Login</a>
+        <a href="orders.html">Orders</a>
+        <a href="wishlist.html">Wishlist</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </div>
+</nav>
+
+<section class="hero">
+    <h1>Your Gateway to Knowledge</h1>
+
+    <p>
+        Discover thousands of books from programming,
+        business, self-development, novels and more.
+    </p>
+
+    <a href="index.html" class="btn">
+        Browse Books
+    </a>
+</section>
+<section class="featured-books">
+
+    <h2>Featured Books</h2>
+
+    <div id="featuredBooks"></div>
+
+</section>
+
+<section class="categories">
+
+    <h2>Popular Categories</h2>
+
+    <div class="category-grid">
+
+        <div class="category-card">
+            💻 Programming
+        </div>
+
+        <div class="category-card">
+            💰 Business
+        </div>
+
+        <div class="category-card">
+            🧠 Self Development
+        </div>
+
+        <div class="category-card">
+            📖 Novels
+        </div>
+
+    </div>
+
+</section>
+
+<section class="why-us">
+
+    <h2>Why Choose BookMe?</h2>
+
+    <ul>
+        <li>✔ Thousands of Books</li>
+        <li>✔ Secure Payments</li>
+        <li>✔ Fast Delivery</li>
+        <li>✔ Best Prices</li>
+    </ul>
+
+</section>
+
+<footer>
+    <p>© 2026 BookMe. All Rights Reserved.</p>
+</footer>
+
+
+<script>
+
+fetch("http://localhost:5000/api/books/all-books")
+.then(res => res.json())
+.then(data => {
+    const container = document.getElementById("featuredBooks");
+    const books = data.slice(0, 4);
+
+    books.forEach(book => {
+        container.innerHTML += `
+            <div class="featured-card">
+                <img
+                    src="${
+                        book.image_url
+                        ? "http://localhost:5000" + book.image_url
+                        : "https://via.placeholder.com/200x250"
+                    }"
+                    alt="${book.title}"
+                >
+
+                <h3>
+                <a href="book-details.html?id=${book.id}">
+                ${book.title}
+                </a>
+                </h3>
+                <p>${book.author}</p>
+                <h4>Rs. ${book.price}</h4>
+
+                <button class="cart-btn" onclick="addToCart(${book.id})">
+                        Add To Cart
+                </button>
+            </div>
+        `;
+    });
+})
+.catch(err => console.log(err));
+function addToCart(bookId) {
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!user) {
+        alert("Please login first");
+        window.location.href = "login.html";
+        return;
+    }
+
+    fetch("http://localhost:5000/api/books/add-to-cart", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            user_id: user.id,
+            book_id: bookId,
+            quantity: 1
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Book added to cart!");
+        console.log(data);
+    })
+    .catch(err => console.log(err));
+}
+function logout() {
+    localStorage.removeItem("user");
+    alert("Logged out successfully");
+    window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>
